@@ -11,13 +11,9 @@ import (
 	"strings"
 )
 
-// Backend struct to handle api calls
-type Backend interface {
-}
-
 // APIServer struct to handle all incoming requests
 type APIServer struct {
-	Backend *Backend
+	Backend interface{}
 }
 
 // StartListening for incomming request
@@ -124,9 +120,9 @@ func (s *APIServer) APIHandler(w http.ResponseWriter, r *http.Request, n string)
 // FormatEndpointMethod to get method name from url
 func FormatEndpointMethod(n, o string) string {
 	p := strings.Split(n, "/")
-	m := o
+	m := strings.ToLower(o)
 	for _, s := range p {
-		m = fmt.Sprintf("%s%s", m, strings.Title(s))
+		m = fmt.Sprintf("%s%s", strings.Title(m), strings.Title(s))
 	}
 	return m
 }
@@ -134,8 +130,8 @@ func FormatEndpointMethod(n, o string) string {
 // ExecEndpoint to run method from url
 func ExecEndpoint(i interface{}, m string, w http.ResponseWriter, r *http.Request) {
 	a := reflect.ValueOf(i)
-	logger.Debugf("Method call : %s", strings.Title(m))
-	f := a.MethodByName(strings.Title(m))
+	logger.Debugf("Method call : %s", m)
+	f := a.MethodByName(m)
 	if f.IsZero() {
 		WriteJSONErrorResponse(w, fmt.Sprintf("Invalid method : %s", m), http.StatusInternalServerError)
 	} else {
